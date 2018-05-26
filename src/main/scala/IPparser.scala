@@ -1,8 +1,30 @@
 object IPparser extends App {
 
+  /*
+  Parse an IP (v4/v6) Address
+
+  This software can parse of all ipv4/ipv6 address text representations
+  of IP Address in common usage against the IEF RFC 5952 specification.
+
+  The results of the parse are:
+  - The parts of the text are valid representations. This is indicated in the list by a ✔ or ✘.
+  - The IP version 4 or 6.
+  - Compliance with RFC 5952 concerning double colons Compressed zeroes expansion ('::') and lower case letters.
+  - Hexadecimal representation of the intended IP address.
+  - If part in the text to be parsed the port number which is optional.
+
+  As much of the information is produced if there are invalid parts in the remark field.
+  */
+
+  def shortener(s: String, maxlength: Int = 12) = {
+    val size = s.length()
+    s.substring(0, math.min(size, maxlength)) + (if (size > maxlength) "…" else "")
+  }
+
   def myCases = Map(
-    "http://"                                    -> IPInvalidAddressComponents(remark = "No match at all."),
-    "http:// "                                   -> IPInvalidAddressComponents(remark = "No match at all."),
+    "http:"                                      -> IPInvalidAddressComponents(remark = "No match at all: 'http:'."),
+    "http://"                                    -> IPInvalidAddressComponents(remark = "No match at all: 'http://'."),
+    "http:// "                                   -> IPInvalidAddressComponents(remark = "No match at all: 'http:// '."),
     "http://127.0.0.1/"                          -> ResultContainer(4, BigInt("7F000001", 16)),
     "http://127.0.0.1:80/"                       -> ResultContainer(4, BigInt("7F000001", 16), Some(80)),
     "http://127.0.0.1:65536" ->
@@ -40,10 +62,10 @@ object IPparser extends App {
     "1:2:3:4:5:6::8"                             -> ResultContainer(6, BigInt("00010002000300040005000600000008", 16), strictRFC5952 = false),
     "1:2:3:4:5::8"                               -> ResultContainer(6, BigInt("00010002000300040005000000000008", 16)),
     "1::7:8"                                     -> ResultContainer(6, BigInt("00010000000000000000000000070008", 16)),
-    "a::b::1"                                    -> IPInvalidAddressComponents(remark = "Noise found 'a::b::1'."),
+    "a::b::1"                                    -> IPInvalidAddressComponents(remark = "Noise found: 'a::b::1'."),
     "fff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"     -> ResultContainer(6, BigInt("0fffffffffffffffffffffffffffffff", 16)),
     "FFFF:ffff:ffff:ffff:ffff:ffff:ffff:ffff"    -> ResultContainer(6, BigInt("ffffffffffffffffffffffffffffffff", 16), strictRFC5952 = false),
-    "ffff:ffff:ffff:fffg:ffff:ffff:ffff:ffff"    -> IPInvalidAddressComponents(remark = "No match at all."),
+    "ffff:ffff:ffff:fffg:ffff:ffff:ffff:ffff"    -> IPInvalidAddressComponents(remark = "No match at all: 'ffff:ffff:ffff:fffg…'."),
     "g::1"                                       -> IPInvalidAddressComponents(6, remark ="Invalid input 'g::1'."),
     "[g::1]:192.0.2.33"                          -> IPInvalidAddressComponents(4, remark = "Address puntation error: ':192.0.2.33'."),
     "1:2:3:4:5:6:7:8"                            -> ResultContainer(6, BigInt("00010002000300040005000600070008", 16)),
@@ -51,7 +73,6 @@ object IPparser extends App {
     "1:2:3:4::6:7:8"                             -> ResultContainer(6, BigInt("00010002000300040000000600070008", 16), strictRFC5952 = false),
     "1:2:3:4::8"                                 -> ResultContainer(6, BigInt("00010002000300040000000000000008", 16)),
     "1:2:3::5:6:7:8"                             -> ResultContainer(6, BigInt("00010002000300000005000600070008", 16), strictRFC5952 = false),
-
     "1:2:3::8"                                   -> ResultContainer(6, BigInt("00010002000300000000000000000008", 16)),
     "1:2::4:5:6:7:8"                             -> ResultContainer(6, BigInt("00010002000000040005000600070008", 16), strictRFC5952 = false),
     "1:2::8"                                     -> ResultContainer(6, BigInt("00010002000000000000000000000008", 16)),
@@ -98,14 +119,14 @@ object IPparser extends App {
     "[::FFFF:192.168.0.1]:22"                    -> ResultContainer(6, BigInt("00000000000000000000ffffc0a80001", 16), Some(22), strictRFC5952 = false),
     "[::FFFF:192.168.173.22]:80"                 -> ResultContainer(6, BigInt("00000000000000000000ffffc0a8ad16", 16), Some(80), strictRFC5952 = false),
     "[::FFFF:71.19.147.227]:80"                  -> ResultContainer(6, BigInt("00000000000000000000ffff471393e3", 16), Some(80), strictRFC5952 = false),
-    "A::B::1"                                    -> IPInvalidAddressComponents(remark = "Noise found 'A::B::1'."),
+    "A::B::1"                                    -> IPInvalidAddressComponents(remark = "Noise found: 'A::B::1'."),
     "FFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"     -> ResultContainer(6, BigInt("0FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), strictRFC5952 = false),
     "FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"    -> ResultContainer(6, BigInt("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), strictRFC5952 = false),
-    "FFFF:FFFF:FFFF:FFFG:FFFF:FFFF:FFFF:FFFF"    -> IPInvalidAddressComponents(remark = "No match at all."),
+    "FFFF:FFFF:FFFF:FFFG:FFFF:FFFF:FFFF:FFFF"    -> IPInvalidAddressComponents(remark = "No match at all: 'FFFF:FFFF:FFFF:FFFG…'."),
     "G::1"                                       -> IPInvalidAddressComponents(6, remark = "Invalid input 'G::1'."),
     "64:FF9B::192.0.2.33"                        -> ResultContainer(6, BigInt("0064FF9B0000000000000000C0000221", 16), strictRFC5952 = false),
     "64:FF9B::256.0.2.33" -> IPInvalidAddressComponents(6, BigInt("0064FF9B000000000000000000000000", 16), remark = "Invalid octets.")
-  )
+    )
 
   def IPInvalidAddressComponents(version: Int = 0,
                                  address: BigInt = BigInt(0),
@@ -126,11 +147,11 @@ object IPparser extends App {
     import IpAddress._
 
     val (usedPattern, result: ResultContainer) = originalString match {
-      case trapPattern() => (trapPattern, IPInvalidAddressComponents(remark = s"Noise found '$originalString'."))
+      case trapPattern() => (trapPattern, IPInvalidAddressComponents(remark = s"Noise found: '${shortener(originalString)}'."))
       case allIpV6PortedPatternsCompiled(adr, port) => parseIpV6(adr, Option(port).map(_.toInt))
       case allIpV6UnspecPortPatternsCompiled(adr) => parseIpV6(adr)
       case ipV4PortSpecCompiled(adr, port) => (ipV4PortSpecCompiled, parseIpV4(adr, Option(port).map(_.toInt)))
-      case _ => ("All matches exhausted.", IPInvalidAddressComponents(remark = "No match at all."))
+      case _ => ("Exhausted of all matches.", IPInvalidAddressComponents(remark = s"No match at all: '${shortener(originalString, 19)}'."))
     }
 
     override def toString: String = {
@@ -152,7 +173,7 @@ object IPparser extends App {
 
       def hexAddrField = f"${if (result.valid || result.address != 0) surround(hexAddr) else "? "}%36s "
 
-      f"$originalString%46s $version $validInd $rfc5952 $hexAddrField $port%8s ${result.remark}%-40s $usedPattern"
+      f"${shortener(originalString, 45)}%46s $version $validInd $rfc5952 $hexAddrField $port%8s ${result.remark}%-40s $usedPattern"
     }
 
     private def parseIpV6(ipAddress: String, port: Option[Int] = None): (String, ResultContainer) = {
@@ -177,7 +198,7 @@ object IPparser extends App {
       }
 
       if (!ipAddress.forall((('A' to 'F') ++ ('a' to 'f') ++ ('0' to '9') ++ Vector(':', '.')).contains(_)))
-        ("[^:.[0-9][A-F][a-f]]", IPInvalidAddressComponents(6, remark = s"Invalid input '$ipAddress'."))
+        ("[^:.[0-9][A-F][a-f]]", IPInvalidAddressComponents(6, remark = s"Invalid input '${shortener(ipAddress)}'."))
       else
         ipAddress match {
           case pattern10Compiled(seg, ip4Seg) => parseEmbeddedV4(seg, ip4Seg, pattern10Compiled.toString())
@@ -204,7 +225,7 @@ object IPparser extends App {
           ResultContainer(4, BigInt(wordsToNum(octets)), port, portNumberOK.isEmpty, portNumberOK, portNumberOK.isEmpty)
         } else IPInvalidAddressComponents(4, remark = "Invalid octets.")
       }
-      else IPInvalidAddressComponents(4, remark = s"Address puntation error: '$sIP'.")
+      else IPInvalidAddressComponents(4, remark = s"Address puntation error: '${shortener(sIP)}'.")
     }
 
     private def portNumberTest(port: Option[Int]) = if (port.isEmpty || port.get < math.pow(2, 16)) "" else "Port number out of range."
@@ -224,16 +245,17 @@ object IPparser extends App {
       def ipV6SegRegWC = """\w{1,4}"""
 
       Seq(
-      s"((?::(?:(?::$ipV6SegRegex){1,7}|:)))",
-      s"((?:$ipV6SegRegWC:(?::$ipV6SegRegex){1,6}))",
-      s"((?:$ipV6SegRegex:){1,2}(?::$ipV6SegRegex){1,5})",
-      s"((?:$ipV6SegRegex:){1,3}(?::$ipV6SegRegex){1,4})",
-      s"((?:$ipV6SegRegex:){1,4}(?::$ipV6SegRegex){1,3})",
-      s"((?:$ipV6SegRegex:){1,5}(?::$ipV6SegRegex){1,2})",
-      s"((?:$ipV6SegRegex:){1,6}:$ipV6SegRegex)",
-      s"((?:$ipV6SegRegex:){1,7}:)",
-      s"((?:$ipV6SegRegex:){7}$ipV6SegRegex)"
-    )}
+        s"((?::(?:(?::$ipV6SegRegex){1,7}|:)))",
+        s"((?:$ipV6SegRegWC:(?::$ipV6SegRegex){1,6}))",
+        s"((?:$ipV6SegRegex:){1,2}(?::$ipV6SegRegex){1,5})",
+        s"((?:$ipV6SegRegex:){1,3}(?::$ipV6SegRegex){1,4})",
+        s"((?:$ipV6SegRegex:){1,4}(?::$ipV6SegRegex){1,3})",
+        s"((?:$ipV6SegRegex:){1,5}(?::$ipV6SegRegex){1,2})",
+        s"((?:$ipV6SegRegex:){1,6}:$ipV6SegRegex)",
+        s"((?:$ipV6SegRegex:){1,7}:)",
+        s"((?:$ipV6SegRegex:){7}$ipV6SegRegex)"
+      )
+    }
 
     private def embeddedV4patterns(nonCapturePrefix: String = "(") =
       Seq(s"(::(?:(?:FFFF|ffff)(?::0{1,4}){0,1}:){0,1}$nonCapturePrefix${ipV4Regex("3")}))",
@@ -255,11 +277,11 @@ object IPparser extends App {
   }
 
   {
-    val headline = Seq(f"${"IP addresses to be parsed. "}%46s", f"${"Ver."}%4s", f"${"S"}%1s",
-      f"${"Hexadecimal IP address"}%42s", f"${"Port "}%10s", f"${" Remark"}%-40s", f"${" Effective RegEx"}%-40s")
+    val headline = Seq(f"${"IP addresses to be parsed. "}%46s", "Ver.", f"${"S"}%1s", "RFC5952",
+      f"${"Hexadecimal IP address"}%34s", f"${"Port "}%10s", f"${" Remark"}%-40s", f"${" Effective RegEx"}%-40s")
 
     println(headline.mkString("|"))
-    println(headline.map(s => "-" * s.size).mkString("+"))
+    println(headline.map(s => "-" * s.length).mkString("+"))
     println(myCases.keySet.map(new IpAddress(_)).toList.sortBy(s => (s.originalString.length, s.originalString)).mkString("\n"))
   }
 
