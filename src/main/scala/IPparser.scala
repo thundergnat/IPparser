@@ -16,11 +16,6 @@ object IPparser extends App {
   As much of the information is produced if there are invalid parts in the remark field.
   */
 
-  def shortener(s: String, maxlength: Int = 12) = {
-    val size = s.length()
-    s.substring(0, math.min(size, maxlength)) + (if (size > maxlength) "…" else "")
-  }
-
   def myCases = Map(
     "http:"                                      -> IPInvalidAddressComponents(remark = "No match at all: 'http:'."),
     "http://"                                    -> IPInvalidAddressComponents(remark = "No match at all: 'http://'."),
@@ -174,6 +169,11 @@ object IPparser extends App {
       def hexAddrField = f"${if (result.valid || result.address != 0) surround(hexAddr) else "? "}%36s "
 
       f"${shortener(originalString, 45)}%46s $version $validInd $rfc5952 $hexAddrField $port%8s ${result.remark}%-40s $usedPattern"
+    }
+
+    def shortener(s: String, maxlength: Int = 12): String = {
+      val size = s.length()
+      s.substring(0, math.min(size, maxlength)) + (if (size > maxlength) "…" else "")
     }
 
     private def parseIpV6(ipAddress: String, port: Option[Int] = None): (String, ResultContainer) = {
