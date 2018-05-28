@@ -3,15 +3,16 @@ object IPparser extends App {
   /*
   Parse an IP (v4/v6) Address
 
-  This software can parse of all ipv4/ipv6 address text representations
+  This software can parse all ipv4/ipv6 address text representations
   of IP Address in common usage against the IEF RFC 5952 specification.
 
   The results of the parse are:
   - The parts of the text are valid representations. This is indicated in the list by a ✔ or ✘.
-  - The IP version 4 or 6.
-  - Compliance with RFC 5952 concerning double colons Compressed zeroes expansion ('::') and lower case letters.
+  - The intended version; 4 or 6.
+  - Compliance with RFC 5952 in respect with double colons Compressed zeroes expansion ('::') and lower case letters.
   - Hexadecimal representation of the intended IP address.
-  - If part in the text to be parsed the port number which is optional.
+  - If part in the text the port number which is optional.
+  - The used text string search pattern.
 
   As much of the information is produced if there are invalid parts in the remark field.
   */
@@ -269,8 +270,7 @@ object IPparser extends App {
   object ResultContainer {
     def apply(orginalString: String, version: Int,
               address: BigInt, port: Option[Int],
-              valid: Boolean,
-              remark: String,
+              valid: Boolean, remark: String,
               strictRFC5952: Boolean): ResultContainer =
     // To comply with strictRFC5952 all alpha character must be lowercase too.
       this (version, address, port, valid, remark, strictRFC5952 && !orginalString.exists(_.isUpper))
@@ -280,9 +280,17 @@ object IPparser extends App {
     val headline = Seq(f"${"IP addresses to be parsed. "}%46s", "Ver.", f"${"S"}%1s", "RFC5952",
       f"${"Hexadecimal IP address"}%34s", f"${"Port "}%10s", f"${" Remark"}%-40s", f"${" Effective RegEx"}%-40s")
 
-    println(headline.mkString("|"))
-    println(headline.map(s => "-" * s.length).mkString("+"))
-    println(myCases.keySet.map(new IpAddress(_)).toList.sortBy(s => (s.originalString.length, s.originalString)).mkString("\n"))
+    println(headline.mkString("|") + "\n" + headline.map(s => "-" * s.length).mkString("+"))
+
+    val cases: Set[IpAddress] = myCases.keySet.map(new IpAddress(_))
+
+    println(cases.toList.sortBy(s => (s.originalString.length, s.originalString)).mkString("\n"))
+    logInfo(s"Concluding: ${myCases.size} cases processed, ${cases.count(_.result.valid)} valid ✔ and ${cases.count(!_.result.valid)} invalid ✘.")
+    logInfo("Successfully completed without errors.")
+
+    def logInfo(info: String) {
+      println(f"[Info][${System.currentTimeMillis() - executionStart}%5d ms]" + info)
+    }
   }
 
-} // IPparser
+} // IPparser cloc.exe : 235 loc

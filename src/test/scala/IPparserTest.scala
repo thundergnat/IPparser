@@ -1,4 +1,5 @@
 import IPparser.{IpAddress, ResultContainer, myCases}
+import inet.ipaddr.{HostName, IPAddressString}
 import org.scalatest._
 
 class IPparserTest extends Suite {
@@ -6,8 +7,9 @@ class IPparserTest extends Suite {
   val postfix = Seq("", "/")
 
   def testHarness(dottedIP: String, expected: ResultContainer) = {
+    val ip =new HostName(dottedIP)
     val r = new IpAddress(dottedIP)
-    println(dottedIP, r.result, expected)
+    println( dottedIP, r.result.valid === (ip.getAddress() != null), r.result.valid)
     assert(r.result === expected)
   }
 
