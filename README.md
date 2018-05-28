@@ -14,6 +14,8 @@ The results of the parse are:
 
 As much of the information is produced if there are invalid parts in the remark field.
 
+See it in running in your browser by <a href="https://scastie.scala-lang.org/Z5CGsnzBRCmZGNffNF8nRg" target="_blank">Scastie (JVM).</a>
+
 
 (Wide) output:
 ```

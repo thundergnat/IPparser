@@ -285,6 +285,7 @@ object IPparser extends App {
     val cases: Set[IpAddress] = myCases.keySet.map(new IpAddress(_))
 
     println(cases.toList.sortBy(s => (s.originalString.length, s.originalString)).mkString("\n"))
+    println()
     logInfo(s"Concluding: ${myCases.size} cases processed, ${cases.count(_.result.valid)} valid ✔ and ${cases.count(!_.result.valid)} invalid ✘.")
     logInfo("Successfully completed without errors.")
 
