@@ -1,7 +1,7 @@
 # IPparser
 Parse an IP (v4/v6) Address
 
-My original contribution to the [Rosetta Code site](http://rosettacode.org/wiki/Parse_an_IP_Address#Scala "Parse an IP Address - Scala") as user Cloudius. (Repository version is older than Rosetta code version.)
+My original contribution to the <a href="http://rosettacode.org/wiki/Parse_an_IP_Address#Scala" title="Parse an IP Address - Scala" target="_blank">Rosetta Code site</a> as user Cloudius. (Note repository version is older than Rosetta code version.)
 
 This software can parse of all ipv4/ipv6 address text representations of IP Address in common usage against the IEF RFC 5952 specification. 
 
